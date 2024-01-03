@@ -5,12 +5,15 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.TextField;
 
 import java.net.URL;
+import java.util.Date;
+import java.util.Objects;
 import java.util.ResourceBundle;
 
 public class ViewController implements Initializable {
     private Device _device;
     @FXML
     private TextField _textField;
+
 
     public void setDevice(Device device){
         _device = device;
@@ -21,8 +24,9 @@ public class ViewController implements Initializable {
         _textField.setOnAction(actionEvent -> {
             try {
                 var value  = Double.parseDouble(_textField.getText());
-                if (value >= 0 && value <= 180)
+                if (value >= 0 && value <= 180) {
                     _device.setAngle(value);
+                }
             }
             catch (Exception ignored){
             }

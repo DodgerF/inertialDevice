@@ -17,6 +17,10 @@ public class HelloApplication extends Application {
         ((AnchorPane)fxmlLoader.getRoot()).getChildren().add(device);
         ((ViewController)fxmlLoader.getController()).setDevice(device);
         stage.setTitle("Hello!");
+        stage.setResizable(false);
+        stage.setOnCloseRequest(windowEvent -> {
+            device.disable();
+        });
         stage.setScene(scene);
         stage.show();
     }
