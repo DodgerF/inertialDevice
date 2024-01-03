@@ -13,7 +13,9 @@ public class HelloApplication extends Application {
     public void start(Stage stage) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("hello-view.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 600, 400);
-        ((AnchorPane)fxmlLoader.getRoot()).getChildren().add(new Device(600,400));
+        var device = new Device(600,400);
+        ((AnchorPane)fxmlLoader.getRoot()).getChildren().add(device);
+        ((ViewController)fxmlLoader.getController()).setDevice(device);
         stage.setTitle("Hello!");
         stage.setScene(scene);
         stage.show();

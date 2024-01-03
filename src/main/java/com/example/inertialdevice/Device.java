@@ -1,18 +1,10 @@
 package com.example.inertialdevice;
 
-import javafx.scene.layout.AnchorPane;
-
 import javafx.scene.layout.Pane;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Arc;
-import javafx.scene.shape.ArcType;
-import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
 
 public class Device extends Pane {
-    private Line line;
-
-
+    private Line _line;
 
     public Device(double w, double h) {
         setWidth(w);
@@ -21,16 +13,21 @@ public class Device extends Pane {
     }
 
     private void addLine(){
-        line = new Line();
-        line.setStartY(getHeight());
-        line.setStartX(getWidth()/2);
-        line.setEndY(getHeight()*0.9);
-        line.setEndX(getWidth()*0.1);
-        getChildren().add(line);
+        _line = new Line();
+        _line.setStartY(getHeight());
+        _line.setStartX(getWidth()/2);
+        _line.setEndY(getHeight());
+        _line.setEndX(0 + getWidth() * 0.1);
+        getChildren().add(_line);
     }
-    public void setCord(Double x, Double y){
-        line.setEndX(x);
-        line.setEndY(y);
+    private Double getRadius(){
+        return Math.sqrt(Math.pow(_line.getEndX() - _line.getStartX(), 2) +
+                         Math.pow(_line.getEndY() - _line.getStartY(), 2));
+    }
+    public void setAngle(double angle){
+        var radius = getRadius();
+        _line.setEndX(_line.getStartX() - (radius * Math.cos(angle * Math.PI/180)));
+        _line.setEndY(_line.getStartY() - (radius * Math.sin(angle * Math.PI/180)));
     }
 
 }
