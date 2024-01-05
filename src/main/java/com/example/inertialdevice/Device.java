@@ -80,6 +80,7 @@ public class Device extends Pane implements Runnable {
             _speed -= _acceleration * time;
         }
         _currentAngle.set(_speed);
+
         _line.setEndX(_line.getStartX() - (radius * Math.cos(_currentAngle.getValue())));
         _line.setEndY(_line.getStartY() - (radius * Math.sin(_currentAngle.getValue())));
     }

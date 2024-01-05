@@ -21,7 +21,6 @@ public class ViewController implements Initializable {
 
     public void setDevice(Device device){
         _device = device;
-        _device.getRedAngle();
         _device.getAngle().addListener(new ChangeListener<>() {
             @Override
             public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
@@ -38,6 +37,9 @@ public class ViewController implements Initializable {
                 var value  = Double.parseDouble(_textField.getText());
                 if (value >= 0 && value <= 180) {
                     _device.setAngle(value);
+                }
+                else {
+                    _textField.setText("");
                 }
             }
             catch (Exception ignored){
