@@ -1,27 +1,43 @@
 package com.example.inertialdevice;
 
+import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableDoubleValue;
+import javafx.beans.value.ObservableValue;
+import javafx.event.EventType;
 import javafx.scene.layout.Pane;
+import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 
 import java.util.Date;
-import java.util.Objects;
 
 public class Device extends Pane implements Runnable {
     private Line _line;
-    private double _currentAngle;
+    private final SimpleDoubleProperty _currentAngle = new SimpleDoubleProperty();
     private double _angle;
     private double _acceleration;
-    private Thread _thread;
+    private final Thread _thread;
     private long _timeStart;
     private boolean _isActive;
+    private final double RED_ANGLE;
 
     public Device(double w, double h) {
         setWidth(w);
         setHeight(h);
-        addLine();
+        addLines();
 
-        _acceleration = 0.03;
-        _currentAngle = 0;
+        Line redLine = new Line();
+        redLine.setStroke(Color.RED);
+        redLine.setStartY(getHeight());
+        redLine.setStartX(getWidth() / 2);
+        redLine.setEndY(getHeight() * 0.9);
+        redLine.setEndX(getWidth() * 0.9);
+        getChildren().add(redLine);
+
+        RED_ANGLE = Math.atan2(redLine.getStartY() - redLine.getEndY(), redLine.getStartX() - redLine.getEndX());
+
+
+        _currentAngle.set(0);
         _angle = 0;
         _thread = new Thread(this);
     }
@@ -32,36 +48,43 @@ public class Device extends Pane implements Runnable {
         _isActive = true;
         _thread.start();
     }
-    private void addLine(){
+
+
+    private void addLines(){
         _line = new Line();
         _line.setStartY(getHeight());
-        _line.setStartX(getWidth()/2);
+        _line.setStartX(getWidth() / 2);
         _line.setEndY(getHeight());
-        _line.setEndX(0 + getWidth() * 0.1);
+        _line.setEndX(getWidth() * 0.1);
         getChildren().add(_line);
     }
     private void turnToAngle(int time){
         var radius = Math.sqrt(Math.pow(_line.getEndX() - _line.getStartX(), 2) +
                 Math.pow(_line.getEndY() - _line.getStartY(), 2));
 
-        if (Math.abs(_currentAngle - _angle) <= 0.1) {
-            var A = 2; //амплитуда колебаний
-            var a = -0.7; //коэффициент затухания
-            _acceleration = A * Math.sin(_acceleration * time) * Math.exp(a * time);
+        if (Math.abs(_currentAngle.doubleValue() - _angle) <= 0.1) {
+            var AMPLITUDE_OF_CHANGE = 2;
+            var ATTENUATION_COEFFICIENT = -0.7;
+            _acceleration = AMPLITUDE_OF_CHANGE * Math.sin(_acceleration * time) * Math.exp(ATTENUATION_COEFFICIENT * time);
         }
         else{
             _acceleration = 0.03;
         }
-        if (_currentAngle < _angle){
-            _currentAngle += _acceleration * time;
+        if (_currentAngle.doubleValue() < _angle){
+            _currentAngle.set(_currentAngle.getValue() + _acceleration * time);
         }
         else {
-            _currentAngle -= _acceleration * time;
+            _currentAngle.set(_currentAngle.getValue() -_acceleration * time);
         }
 
-        _line.setEndX(_line.getStartX() - (radius * Math.cos(_currentAngle)));
-        _line.setEndY(_line.getStartY() - (radius * Math.sin(_currentAngle)));
-
+        _line.setEndX(_line.getStartX() - (radius * Math.cos(_currentAngle.getValue())));
+        _line.setEndY(_line.getStartY() - (radius * Math.sin(_currentAngle.getValue())));
+    }
+    public Double getRedAngle() {
+        return RED_ANGLE;
+    }
+    public SimpleDoubleProperty getAngle() {
+        return _currentAngle;
     }
     public void disable() {
         _isActive = false;
