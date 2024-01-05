@@ -1,10 +1,6 @@
 package com.example.inertialdevice;
 
 import javafx.beans.property.SimpleDoubleProperty;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableDoubleValue;
-import javafx.beans.value.ObservableValue;
-import javafx.event.EventType;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
@@ -16,16 +12,44 @@ public class Device extends Pane implements Runnable {
     private final SimpleDoubleProperty _currentAngle = new SimpleDoubleProperty();
     private double _angle;
     private double _acceleration;
+    private double _speed;
     private final Thread _thread;
     private long _timeStart;
     private boolean _isActive;
-    private final double RED_ANGLE;
+    private double _redAngle;
 
     public Device(double w, double h) {
         setWidth(w);
         setHeight(h);
-        addLines();
 
+        addLine();
+        addZoneIndicator();
+
+        _currentAngle.set(0);
+        _angle = 0;
+        _speed = 0;
+        _thread = new Thread(this);
+    }
+    public void setAngle(Double angle) {
+        _angle = angle * Math.PI/180;
+
+        _timeStart = new Date().getTime() - 1000;
+
+        _isActive = true;
+        _thread.start();
+    }
+
+
+    private void addLine(){
+        _line = new Line();
+        _line.setStartY(getHeight());
+        _line.setStartX(getWidth() / 2);
+        _line.setEndY(getHeight());
+        _line.setEndX(getWidth() * 0.1);
+        getChildren().add(_line);
+    }
+
+    private void addZoneIndicator() {
         Line redLine = new Line();
         redLine.setStroke(Color.RED);
         redLine.setStartY(getHeight());
@@ -34,29 +58,7 @@ public class Device extends Pane implements Runnable {
         redLine.setEndX(getWidth() * 0.9);
         getChildren().add(redLine);
 
-        RED_ANGLE = Math.atan2(redLine.getStartY() - redLine.getEndY(), redLine.getStartX() - redLine.getEndX());
-
-
-        _currentAngle.set(0);
-        _angle = 0;
-        _thread = new Thread(this);
-    }
-    public void setAngle(Double angle) {
-        _angle = angle * Math.PI/180;
-
-        _timeStart = new Date().getTime();
-        _isActive = true;
-        _thread.start();
-    }
-
-
-    private void addLines(){
-        _line = new Line();
-        _line.setStartY(getHeight());
-        _line.setStartX(getWidth() / 2);
-        _line.setEndY(getHeight());
-        _line.setEndX(getWidth() * 0.1);
-        getChildren().add(_line);
+        _redAngle = Math.atan2(redLine.getStartY() - redLine.getEndY(), redLine.getStartX() - redLine.getEndX());
     }
     private void turnToAngle(int time){
         var radius = Math.sqrt(Math.pow(_line.getEndX() - _line.getStartX(), 2) +
@@ -64,24 +66,25 @@ public class Device extends Pane implements Runnable {
 
         if (Math.abs(_currentAngle.doubleValue() - _angle) <= 0.1) {
             var AMPLITUDE_OF_CHANGE = 2;
-            var ATTENUATION_COEFFICIENT = -0.7;
+            var ATTENUATION_COEFFICIENT = -0.73;
             _acceleration = AMPLITUDE_OF_CHANGE * Math.sin(_acceleration * time) * Math.exp(ATTENUATION_COEFFICIENT * time);
         }
         else{
-            _acceleration = 0.03;
-        }
-        if (_currentAngle.doubleValue() < _angle){
-            _currentAngle.set(_currentAngle.getValue() + _acceleration * time);
-        }
-        else {
-            _currentAngle.set(_currentAngle.getValue() -_acceleration * time);
+            _acceleration = 0.04;
         }
 
+        if (_currentAngle.doubleValue() < _angle){
+            _speed += _acceleration * time;
+        }
+        else {
+            _speed -= _acceleration * time;
+        }
+        _currentAngle.set(_speed);
         _line.setEndX(_line.getStartX() - (radius * Math.cos(_currentAngle.getValue())));
         _line.setEndY(_line.getStartY() - (radius * Math.sin(_currentAngle.getValue())));
     }
     public Double getRedAngle() {
-        return RED_ANGLE;
+        return _redAngle;
     }
     public SimpleDoubleProperty getAngle() {
         return _currentAngle;
@@ -101,6 +104,8 @@ public class Device extends Pane implements Runnable {
                 turnToAngle(((int)(now - _timeStart)/1000));
                 lastUpdate = now;
             }
+            if (_speed == 0)
+                disable();
         }
     }
 }
